@@ -6,8 +6,8 @@ from django.utils import timezone
 # Create your models here.
 class Post(models.Model):
     class Status(models.TextChoices):
-        DRAFT = 'D', 'Draft'
-        PUBLISHED = 'P', 'Published'
+        DRAFT = 'DF', 'Draft'
+        PUBLISHED = 'PB', 'Published'
 
     title = models.CharField(max_length=250)
     slug = models.SlugField(max_length=250)
