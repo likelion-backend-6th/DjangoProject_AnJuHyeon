@@ -1,5 +1,7 @@
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.shortcuts import render, get_object_or_404
+from django.views.generic import ListView
+from .forms import EmailPostForm
 from .models import Post
 
 def post_list(request):
@@ -24,3 +26,27 @@ def post_detail(request, year, month, day, post):
                               publish__month=month,
                               publish__day=day)
     return render(request, 'blog/post/detail.html', {'post': post})
+class PostListView(ListView):
+    """대체 글 목록 뷰"""
+    queryset = Post.published.all()
+    context_object_name = 'posts'
+    paginate_by = 3
+    template_name = 'blog/post/list.html'
+
+
+def post_share(request, post_id):
+    # 글 검색을 위해 ID 사용
+    post = get_object_or_404(Post, id=post_id, status=Post.Status.PUBLISHED)
+
+    if request.method == 'POST':
+        # 폼이 제출되었습니다.
+        form = EmailPostForm(request.POST)
+
+        if form.is_valid():
+            # 폼 필드가 유효한 경우
+            cd = form.cleaned_data
+            # ... 이메일 전송
+        else:
+            form = EmailPostForm()
+
+    return render(request, 'blog/post/share.html', {'post': post, 'form': form})
