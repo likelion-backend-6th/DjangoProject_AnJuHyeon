@@ -5,6 +5,15 @@ from django.views.generic import ListView
 from .forms import EmailPostForm
 from .models import Post
 
+
+class PostListView(ListView):
+    """대체 글 목록 뷰"""
+    queryset = Post.published.all()
+    context_object_name = 'posts'
+    paginate_by = 3
+    template_name = 'blog/post/list.html'
+
+
 def post_list(request):
     post_list = Post.published.all()
     # 페이지당 3개의 게시물로 페이지네이션
@@ -20,19 +29,13 @@ def post_list(request):
         posts = paginator.page(paginator.num_pages)
     return render(request, 'blog/post/list.html', {'posts': posts})
 def post_detail(request, year, month, day, post):
-    posts = get_object_or_404(post,
+    post = get_object_or_404(Post,
                               status=Post.Status.PUBLISHED,
                               slug=post,
                               publish__year=year,
                               publish__month=month,
                               publish__day=day)
     return render(request, 'blog/post/detail.html', {'post': post})
-class PostListView(ListView):
-    """대체 글 목록 뷰"""
-    queryset = Post.published.all()
-    context_object_name = 'posts'
-    paginate_by = 3
-    template_name = 'blog/post/list.html'
 
 
 def post_share(request, post_id):
