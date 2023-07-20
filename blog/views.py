@@ -1,5 +1,3 @@
-import os
-
 from django.core.mail import send_mail
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.shortcuts import render, get_object_or_404
@@ -18,7 +16,6 @@ class PostListView(ListView):
 
 # Create your views here.
 def post_list(request):
-    stage = os.getenv('STAGE', 'dev')
     per_page = request.GET.get('per_page', 3)
     page_number = request.GET.get('page', 1)
     post_list = Post.published.all()
@@ -29,7 +26,7 @@ def post_list(request):
         posts = paginator.page(1)
     except EmptyPage:
         posts = paginator.page(paginator.num_pages)
-    return render(request, 'blog/post/list.html', {'posts': posts, 'stage': stage})
+    return render(request, 'blog/post/list.html', {'posts': posts})
 
 
 def post_detail(request, year, month, day, post):
