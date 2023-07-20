@@ -3,6 +3,8 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView
+from taggit.models import Tag
+from django.db.models import Count
 from .forms import EmailPostForm, CommentForm
 from .models import Post
 
@@ -15,29 +17,28 @@ class PostListView(ListView):
     template_name = 'blog/post/list.html'
 
 
-def post_list(request):
+def post_list(request, tag_slug=None):
     post_list = Post.published.all()
-    # 페이지당 3개의 게시물로 페이지네이션
+    tag = None
+
+    if tag_slug:
+        tag = get_object_or_404(Tag, slug=tag_slug)
+        post_list = post_list.filter(tags__in=[tag])
+
+    # Pagination with 3 posts per page
     paginator = Paginator(post_list, 3)
-    page_number = request.GET.get('page')
+    page_number = request.GET.get('page', 1)
+
     try:
         posts = paginator.page(page_number)
     except PageNotAnInteger:
-        # page_number가 정수가 아닌 경우 첫 번째 페이지 제공
+        # If page_number is not an integer, deliver the first page
         posts = paginator.page(1)
     except EmptyPage:
-        # page_number가 범위를 벗어난 경우 결과의 마지막 페이지 제공
+        # If page_number is out of range, deliver the last page of results
         posts = paginator.page(paginator.num_pages)
-    return render(request, 'blog/post/list.html', {'posts': posts})
-def post_detail(request, year, month, day, post):
-    post = get_object_or_404(Post,
-                              status=Post.Status.PUBLISHED,
-                              slug=post,
-                              publish__year=year,
-                              publish__month=month,
-                              publish__day=day)
-    return render(request, 'blog/post/detail.html', {'post': post})
 
+    return render(request, 'blog/post/list.html', {'posts': posts, 'tag': tag})
 
 def post_share(request, post_id):
     post = get_object_or_404(Post, id=post_id, status=Post.Status.PUBLISHED)
@@ -78,22 +79,23 @@ def post_comment(request, post_id):
                    'form': form,
                    'comment': comment})
 def post_detail(request, year, month, day, post):
-    # 게시물 가져오기
-    post = get_object_or_404(Post,
-                             status=Post.Status.PUBLISHED,
-                             slug=post,
-                             publish__year=year,
-                             publish__month=month,
-                             publish__day=day)
+    # Get the post for the given year, month, day, and slug.
+    post = get_object_or_404(Post, status=Post.Status.PUBLISHED, slug=post, publish__year=year, publish__month=month, publish__day=day)
 
-    # 게시물에 속하는 활성화된 댓글들 가져오기
+    # List of active comments for this post
     comments = post.comments.filter(active=True)
 
-    # 댓글을 작성하기 위한 폼 초기화
+    # Form for users to comment
     form = CommentForm()
 
-    return render(request,
-                  'blog/post/detail.html',
-                  {'post': post,
-                   'comments': comments,
-                   'form': form})
+    # List of similar posts
+    post_tags_ids = post.tags.values_list('id', flat=True)
+    similar_posts = Post.published.filter(tags__in=post_tags_ids).exclude(id=post.id)
+    similar_posts = similar_posts.annotate(same_tags=Count('tags')).order_by('-same_tags', '-publish')[:4]
+
+    return render(request, 'blog/post/detail.html', {
+        'post': post,
+        'comments': comments,
+        'form': form,
+        'similar_posts': similar_posts
+    })
