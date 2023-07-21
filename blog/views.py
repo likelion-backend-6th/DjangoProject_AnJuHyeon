@@ -6,7 +6,6 @@ from django.shortcuts import render, get_object_or_404
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView
 from taggit.models import Tag
-
 from blog.forms import EmailPostForm, CommentForm, SearchForm
 from blog.models import Post
 
@@ -101,7 +100,7 @@ def post_search(request):
             query = form.cleaned_data['query']
             results = Post.published.annotate(
                 similarity=TrigramSimilarity('title', query),
-            ).filter(similarity__gt=0.1).order_by('-similarity')
+            ).filter(similarity__gt=0.2).order_by('-similarity')
     return render(request, 'blog/post/search.html', {
         'form': form,
         'query': query,
