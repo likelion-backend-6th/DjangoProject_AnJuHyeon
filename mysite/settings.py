@@ -32,6 +32,7 @@ ALLOWED_HOSTS = []
 SITE_ID = 1
 
 INSTALLED_APPS = [
+    'account.apps.AccountConfig',
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -43,7 +44,6 @@ INSTALLED_APPS = [
     "django.contrib.sites",
     "django.contrib.sitemaps",
     'django.contrib.postgres',
-    'account.apps.AccountConfig',
 ]
 
 MIDDLEWARE = [
@@ -142,3 +142,7 @@ EMAIL_HOST_USER = ''
 EMAIL_HOST_PASSWORD = ''
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
+
+LOGIN_URL = 'login'
+LOGOUT_URL = 'logout'
+LOGIN_REDIRECT_URL = 'dashboard'
