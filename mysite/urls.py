@@ -31,6 +31,7 @@ urlpatterns = [
     path("account/", include('account.urls')),
     path("blog/", include('blog.urls', namespace='blog')),
     path("sitemap.xml", sitemap, {'sitemaps': sitemaps}),
+    path('social-auth/', include('social_django.urls', namespace='social')),
 ]
 
 if settings.DEBUG:

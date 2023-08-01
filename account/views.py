@@ -3,6 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView
 from django.shortcuts import render, redirect
 
+from account.models import Profile
 from .forms import UserRegistrationForm, UserEditForm, ProfileEditForm
 
 
@@ -26,7 +27,6 @@ def register(request):
             new_user = user_form.save(commit=False)
             new_user.set_password(user_form.cleaned_data['password'])
             new_user.save()
-            from account.models import Profile
             Profile.objects.create(user=new_user)
             return render(request,
                           'account/register_done.html',
